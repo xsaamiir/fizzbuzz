@@ -27,18 +27,18 @@ func main() {
 }
 
 func run() error {
-	l := log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
+	logger := log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 	m := metrics.NewInMemoryMetrics()
 
-	srv := lbchttp.New(httpServerPort, l, &m)
+	srv := lbchttp.New(httpServerPort, logger, &m)
 
 	// start the server in a goroutine so that we can continue
 	// listening to events in the main goroutine.
 	go func() {
-		log.Println("Starting server on port " + httpServerPort)
+		logger.Println("Starting server on port " + httpServerPort)
 
 		if err := srv.ListenAndServe(); err != nil {
-			log.Fatalf("Error starting server: %s\n", err)
+			logger.Fatalf("Error starting server: %s\n", err)
 		}
 	}()
 
@@ -51,8 +51,8 @@ func run() error {
 	// This will block until a closing signal is received to exit
 	sig := <-sigquit
 
-	log.Println("🛑 caught sig: " + sig.String())
-	log.Println("👋 starting graceful server shutdown")
+	logger.Println("🛑 caught sig: " + sig.String())
+	logger.Println("👋 starting graceful server shutdown")
 
 	// Create a deadline to use for server shutdown.
 	srvShutdownCtx, srvShutdownCtxCancel := context.WithTimeout(backgroundCtx, shutdownWait)
@@ -64,7 +64,7 @@ func run() error {
 		return fmt.Errorf("⚠️ unable to shut down server: %w", err)
 	}
 
-	log.Println("✅ server shutdown gracefully")
+	logger.Println("✅ server shutdown gracefully")
 
 	return nil
 }
