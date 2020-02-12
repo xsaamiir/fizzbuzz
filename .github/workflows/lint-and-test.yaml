@@ -3,6 +3,22 @@ name: Lint & Test
 on: [push]
 
 jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out the repository https://github.com/actions/checkout
+        uses: actions/checkout@v2
+
+      - name: Install golangci-lint
+        run: |
+          curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b . v1.23.6
+
+      - name: Run golangci-lint
+        run: |
+          ./golangci-lint run
+
   test:
     name: Test
     runs-on: ubuntu-latest
