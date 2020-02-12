@@ -4,9 +4,12 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 )
 
-func TestInMemoryMetrics(t *testing.T) {
+// FizzBuzzMetricsSuite tests all the functionality
+// that FizzBuzzMetrics should implement
+func FizzBuzzMetricsSuite(t *testing.T, newMetrics func() FizzBuzzMetrics) {
 	tests := map[string]struct {
 		args []FizzBuzzRequest
 		want []FizzBuzzMetricsResult
@@ -41,9 +44,10 @@ func TestInMemoryMetrics(t *testing.T) {
 				},
 			},
 		},
-		"2 different requests": {
+		"3 requests with two similar": {
 			args: []FizzBuzzRequest{
 				{Int1: 2, Int2: 4, Limit: 10, Str1: "Fizz", Str2: "Buzz"},
+				{Int1: 3, Int2: 5, Limit: 10, Str1: "Fizz", Str2: "Buzz"},
 				{Int1: 3, Int2: 5, Limit: 10, Str1: "Fizz", Str2: "Buzz"},
 			},
 			want: []FizzBuzzMetricsResult{
@@ -53,7 +57,7 @@ func TestInMemoryMetrics(t *testing.T) {
 				},
 				{
 					Request: FizzBuzzRequest{Int1: 3, Int2: 5, Limit: 10, Str1: "Fizz", Str2: "Buzz"},
-					Hits:    1,
+					Hits:    2,
 				},
 			},
 		},
@@ -77,4 +81,15 @@ func TestInMemoryMetrics(t *testing.T) {
 			}
 		})
 	}
+}
+
+// TestInMemoryMetrics uses the FizzBuzzMetricsSuite to test the
+// in memory implementation of the FizzBuzzMetrics interface.
+func TestInMemoryMetrics(t *testing.T) {
+	newMetrics := func() FizzBuzzMetrics {
+		m := NewInMemoryMetrics()
+		return &m
+	}
+
+	FizzBuzzMetricsSuite(t, newMetrics)
 }
