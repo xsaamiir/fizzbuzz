@@ -5,31 +5,15 @@ import (
 	"log"
 	"net/http"
 	"strconv"
-	"sync"
 
 	"github.com/sharkyze/lbc/fizzbuzz"
 	"github.com/sharkyze/lbc/metrics"
 )
 
 type (
-	FizzBuzzRequest struct {
-		Int1, Int2, Limit int
-		Str1, Str2        string
-	}
-
 	handlers struct {
 		logger *log.Logger
 		metrics.FizzBuzzMetrics
-	}
-
-	FizzBuzzMetrics struct {
-		mu sync.Mutex
-		v  map[FizzBuzzRequest]int
-	}
-
-	FizzBuzzMetricsResult struct {
-		Request FizzBuzzRequest `json:"request"`
-		Hits    int             `json:"hits"`
 	}
 )
 
@@ -38,31 +22,6 @@ func newHandlers(logger *log.Logger, metrics metrics.FizzBuzzMetrics) handlers {
 		logger:          logger,
 		FizzBuzzMetrics: metrics,
 	}
-}
-
-func (m *FizzBuzzMetrics) Count(request FizzBuzzRequest) {
-	m.mu.Lock()
-	m.v[request]++
-	m.mu.Unlock()
-}
-
-func (m *FizzBuzzMetrics) Get() []FizzBuzzMetricsResult {
-	m.mu.Lock()
-	defer m.mu.Unlock()
-
-	res := make([]FizzBuzzMetricsResult, len(m.v))
-
-	var idx int
-
-	for request, hits := range m.v {
-		res[idx] = FizzBuzzMetricsResult{
-			Request: request,
-			Hits:    hits,
-		}
-		idx++
-	}
-
-	return res
 }
 
 func (h *handlers) handleFizzBuzz(w http.ResponseWriter, r *http.Request) {
