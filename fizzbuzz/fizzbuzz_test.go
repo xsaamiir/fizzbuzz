@@ -50,9 +50,3 @@ func Test_fizzBuzz(t *testing.T) {
 		})
 	}
 }
-
-func BenchmarkFizzBuzz(b *testing.B) {
-	for i := 0; i < b.N; i++ {
-		fizzBuzz(1_000_000)
-	}
-}
