@@ -69,7 +69,10 @@ func TestInMemoryMetrics(t *testing.T) {
 
 			got := m.Get()
 
-			if !cmp.Equal(got, tt.want) {
+			if !cmp.Equal(
+				got, tt.want,
+				cmpopts.SortSlices(func(x, y FizzBuzzMetricsResult) bool { return x.Hits < y.Hits }),
+			) {
 				t.Error(cmp.Diff(got, tt.want))
 			}
 		})
