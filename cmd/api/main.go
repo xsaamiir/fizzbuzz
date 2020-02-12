@@ -2,27 +2,21 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"log"
-	"net/http"
 	"os"
 	"os/signal"
-	"strconv"
-	"sync"
 	"syscall"
 	"time"
 
-	"github.com/sharkyze/lbc/fizzbuzz"
+	lbchttp "github.com/sharkyze/lbc/http"
+	"github.com/sharkyze/lbc/metrics"
 )
 
 const (
-	shutdownWait = time.Second * 15
+	httpServerPort = ":8000"
 
-	httpServerPort         = ":8000"
-	httpServerReadTimeout  = 5 * time.Second
-	httpServerWriteTimeout = 10 * time.Second
-	httpServerIdleTimeout  = 120 * time.Second
+	shutdownWait = time.Second * 15
 )
 
 func main() {
@@ -33,20 +27,10 @@ func main() {
 }
 
 func run() error {
-	hs := newHandlers()
+	l := log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
+	m := metrics.NewInMemoryMetrics()
 
-	mux := http.NewServeMux()
-	mux.HandleFunc("/fizzbuzz", hs.handleFizzBuzz)
-	mux.HandleFunc("/metrics", hs.handleMetrics)
-
-	// create a new server
-	srv := http.Server{
-		Addr:         httpServerPort,         // configure the bind address
-		Handler:      mux,                    // set the default handler
-		ReadTimeout:  httpServerReadTimeout,  // max time to read request from the client
-		WriteTimeout: httpServerWriteTimeout, // max time to write response to the client
-		IdleTimeout:  httpServerIdleTimeout,  // max time for connections using TCP Keep-Alive
-	}
+	srv := lbchttp.New(httpServerPort, l, &m)
 
 	// start the server in a goroutine so that we can continue
 	// listening to events in the main goroutine.
@@ -83,112 +67,4 @@ func run() error {
 	log.Println("✅ server shutdown gracefully")
 
 	return nil
-}
-
-type fizzBuzzRequest struct {
-	Int1, Int2, Limit int
-	Str1, Str2        string
-}
-
-type handlers struct {
-	mu sync.Mutex
-	v  map[fizzBuzzRequest]int
-}
-
-func newHandlers() handlers {
-	return handlers{v: make(map[fizzBuzzRequest]int)}
-}
-
-func (h *handlers) count(request fizzBuzzRequest) {
-	h.mu.Lock()
-	h.v[request]++
-	h.mu.Unlock()
-}
-
-func (h *handlers) handleFizzBuzz(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		http.Error(w, "only the http method GET is accepted", http.StatusMethodNotAllowed)
-		return
-	}
-
-	int1 := r.URL.Query().Get("int1")
-
-	n1, err := strconv.Atoi(int1)
-	if err != nil {
-		http.Error(w, "error parsing int1", http.StatusBadRequest)
-		return
-	}
-
-	int2 := r.URL.Query().Get("int2")
-
-	n2, err := strconv.Atoi(int2)
-	if err != nil {
-		http.Error(w, "error parsing int2", http.StatusBadRequest)
-		return
-	}
-
-	limit := r.URL.Query().Get("limit")
-
-	l, err := strconv.Atoi(limit)
-	if err != nil {
-		http.Error(w, "error parsing limit", http.StatusBadRequest)
-		return
-	}
-
-	str1 := r.URL.Query().Get("str1")
-	if str1 == "" {
-		http.Error(w, "missing required parameter str1", http.StatusBadRequest)
-		return
-	}
-
-	str2 := r.URL.Query().Get("str2")
-	if str2 == "" {
-		http.Error(w, "missing required parameter str2", http.StatusBadRequest)
-		return
-	}
-
-	h.count(fizzBuzzRequest{
-		Int1:  n1,
-		Int2:  n2,
-		Limit: l,
-		Str1:  str1,
-		Str2:  str2,
-	})
-
-	res := fizzbuzz.FizzBuzz(n1, n2, l, str1, str2)
-
-	w.Header().Add("content-type", "application/json; charset=utf-8")
-	// https://stackoverflow.com/questions/33903552/what-input-will-cause-golangs-json-marshal-to-return-an-error
-	_ = json.NewEncoder(w).Encode(res)
-}
-
-func (h *handlers) handleMetrics(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		http.Error(w, "only the http method GET is accepted", http.StatusMethodNotAllowed)
-		return
-	}
-
-	h.mu.Lock()
-	defer h.mu.Unlock()
-
-	type metricsResult struct {
-		Request fizzBuzzRequest `json:"request"`
-		Hits    int             `json:"hits"`
-	}
-
-	res := make([]metricsResult, len(h.v))
-
-	var idx int
-
-	for request, hits := range h.v {
-		res[idx] = metricsResult{
-			Request: request,
-			Hits:    hits,
-		}
-		idx++
-	}
-
-	w.Header().Add("content-type", "application/json; charset=utf-8")
-	// https://stackoverflow.com/questions/33903552/what-input-will-cause-golangs-json-marshal-to-return-an-error
-	_ = json.NewEncoder(w).Encode(res)
 }
