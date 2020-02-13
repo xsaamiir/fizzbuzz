@@ -27,7 +27,7 @@ Add a statistics endpoint allowing users to know what the most frequent request 
 
 Make sure you have Go 1.13 or a higher version installed.
 
-You can use the following command to start the http server, the server starts on port 8080 by default.
+You can use the following command to start the http server, the server starts on port 8000 by default.
 
 ```bash
 go get github.com/sharkyze/lbc/...
@@ -83,6 +83,10 @@ golangci-lint run
 └── README.md
 ```
 
+## Things that could be done differently:
+
+## Application structure
+
 When the service is more complex, I will usually have a `domain` and a `usercase` directory.
 The domain directory will hold all domain data structures and methods that don't need to
 contact any outside services.
@@ -124,8 +128,6 @@ func TopHitFizzBuzz(
 	}
 }
 ```
-
-## Things that could be done differently:
 
 ### Metrics
 
