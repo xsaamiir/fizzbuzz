@@ -12,14 +12,14 @@ import (
 type (
 	handlers struct {
 		logger *log.Logger
-		metrics.FizzBuzzMetrics
+		metrics.Metrics
 	}
 )
 
-func newHandlers(logger *log.Logger, metrics metrics.FizzBuzzMetrics) handlers {
+func newHandlers(logger *log.Logger, metrics metrics.Metrics) handlers {
 	return handlers{
-		logger:          logger,
-		FizzBuzzMetrics: metrics,
+		logger:  logger,
+		Metrics: metrics,
 	}
 }
 
@@ -65,7 +65,7 @@ func (h *handlers) handleFizzBuzz(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.Count(metrics.FizzBuzzRequest{
+	h.Record(metrics.Request{
 		Int1:  n1,
 		Int2:  n2,
 		Limit: l,
@@ -83,5 +83,5 @@ func (h *handlers) handleMetrics(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.respond(w, r, "", h.FizzBuzzMetrics.Get(), http.StatusOK)
+	h.respond(w, r, "", h.Metrics.Get(), http.StatusOK)
 }

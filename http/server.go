@@ -14,7 +14,7 @@ const (
 	httpServerIdleTimeout  = 120 * time.Second
 )
 
-func New(port string, logger *log.Logger, metrics metrics.FizzBuzzMetrics) http.Server {
+func New(port string, logger *log.Logger, metrics metrics.Metrics) http.Server {
 	hs := newHandlers(logger, metrics)
 
 	mux := http.NewServeMux()
