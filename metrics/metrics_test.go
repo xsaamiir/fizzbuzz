@@ -8,55 +8,55 @@ import (
 )
 
 // FizzBuzzMetricsSuite tests all the functionality
-// that FizzBuzzMetrics should implement
-func FizzBuzzMetricsSuite(t *testing.T, newMetrics func() FizzBuzzMetrics) {
+// that Metrics should implement
+func FizzBuzzMetricsSuite(t *testing.T, newMetrics func() Metrics) {
 	tests := map[string]struct {
-		args []FizzBuzzRequest
-		want []FizzBuzzMetricsResult
+		args []Request
+		want []Result
 	}{
 		"no requests": {
-			args: []FizzBuzzRequest{},
-			want: []FizzBuzzMetricsResult{},
+			args: []Request{},
+			want: []Result{},
 		},
 		"one request": {
-			args: []FizzBuzzRequest{
+			args: []Request{
 				{Int1: 3, Int2: 5, Limit: 10, Str1: "Fizz", Str2: "Buzz"},
 			},
-			want: []FizzBuzzMetricsResult{
+			want: []Result{
 				{
-					Request: FizzBuzzRequest{Int1: 3, Int2: 5, Limit: 10, Str1: "Fizz", Str2: "Buzz"},
+					Request: Request{Int1: 3, Int2: 5, Limit: 10, Str1: "Fizz", Str2: "Buzz"},
 					Hits:    1,
 				},
 			},
 		},
 		"5 similar requests": {
-			args: []FizzBuzzRequest{
+			args: []Request{
 				{Int1: 3, Int2: 5, Limit: 10, Str1: "Fizz", Str2: "Buzz"},
 				{Int1: 3, Int2: 5, Limit: 10, Str1: "Fizz", Str2: "Buzz"},
 				{Int1: 3, Int2: 5, Limit: 10, Str1: "Fizz", Str2: "Buzz"},
 				{Int1: 3, Int2: 5, Limit: 10, Str1: "Fizz", Str2: "Buzz"},
 				{Int1: 3, Int2: 5, Limit: 10, Str1: "Fizz", Str2: "Buzz"},
 			},
-			want: []FizzBuzzMetricsResult{
+			want: []Result{
 				{
-					Request: FizzBuzzRequest{Int1: 3, Int2: 5, Limit: 10, Str1: "Fizz", Str2: "Buzz"},
+					Request: Request{Int1: 3, Int2: 5, Limit: 10, Str1: "Fizz", Str2: "Buzz"},
 					Hits:    5,
 				},
 			},
 		},
 		"3 requests with two similar": {
-			args: []FizzBuzzRequest{
+			args: []Request{
 				{Int1: 2, Int2: 4, Limit: 10, Str1: "Fizz", Str2: "Buzz"},
 				{Int1: 3, Int2: 5, Limit: 10, Str1: "Fizz", Str2: "Buzz"},
 				{Int1: 3, Int2: 5, Limit: 10, Str1: "Fizz", Str2: "Buzz"},
 			},
-			want: []FizzBuzzMetricsResult{
+			want: []Result{
 				{
-					Request: FizzBuzzRequest{Int1: 2, Int2: 4, Limit: 10, Str1: "Fizz", Str2: "Buzz"},
+					Request: Request{Int1: 2, Int2: 4, Limit: 10, Str1: "Fizz", Str2: "Buzz"},
 					Hits:    1,
 				},
 				{
-					Request: FizzBuzzRequest{Int1: 3, Int2: 5, Limit: 10, Str1: "Fizz", Str2: "Buzz"},
+					Request: Request{Int1: 3, Int2: 5, Limit: 10, Str1: "Fizz", Str2: "Buzz"},
 					Hits:    2,
 				},
 			},
@@ -68,14 +68,14 @@ func FizzBuzzMetricsSuite(t *testing.T, newMetrics func() FizzBuzzMetrics) {
 			m := NewInMemoryMetrics()
 
 			for _, req := range tt.args {
-				m.Count(req)
+				m.Record(req)
 			}
 
 			got := m.Get()
 
 			if !cmp.Equal(
 				got, tt.want,
-				cmpopts.SortSlices(func(x, y FizzBuzzMetricsResult) bool { return x.Hits < y.Hits }),
+				cmpopts.SortSlices(func(x, y Result) bool { return x.Hits < y.Hits }),
 			) {
 				t.Error(cmp.Diff(got, tt.want))
 			}
@@ -84,9 +84,9 @@ func FizzBuzzMetricsSuite(t *testing.T, newMetrics func() FizzBuzzMetrics) {
 }
 
 // TestInMemoryMetrics uses the FizzBuzzMetricsSuite to test the
-// in memory implementation of the FizzBuzzMetrics interface.
+// in memory implementation of the Metrics interface.
 func TestInMemoryMetrics(t *testing.T) {
-	newMetrics := func() FizzBuzzMetrics {
+	newMetrics := func() Metrics {
 		m := NewInMemoryMetrics()
 		return &m
 	}
