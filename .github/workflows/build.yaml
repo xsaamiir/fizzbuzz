@@ -1,0 +1,26 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    env:
+      IMAGE_TAG: ${{ github.sha }}
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build the Docker image
+        run: docker build . --file cmd/api/Dockerfile --tag docker.pkg.github.com/$GITHUB_REPOSITORY/fizzbuzz-api:$IMAGE_TAG
+
+      - name: Docker login
+        run: docker login docker.pkg.github.com -u $GITHUB_ACTOR -p $GITHUB_TOKEN
+        env:
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+
+      - name: Push image
+        run: docker push docker.pkg.github.com/$GITHUB_REPOSITORY/fizzbuzz-api:$IMAGE_TAG
