@@ -1,4 +1,5 @@
 ![Lint & Test](https://github.com/sharkyze/lbc/workflows/Lint%20&%20Test/badge.svg)
+![Build](https://github.com/sharkyze/lbc/workflows/Build/badge.svg)
 
 # LBC
 
@@ -65,6 +66,7 @@ golangci-lint run
 │     └── lint-and-test.yaml
 ├── cmd                            All entrypoints to the service
 │  └── api                         The HTTP server entrypoint to the service
+│     ├── Dockerfile
 │     └── main.go
 ├── fizzbuzz                       Package implementing fizz-buzz
 │  ├── fizzbuzz.go
