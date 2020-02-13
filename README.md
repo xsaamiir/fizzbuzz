@@ -53,7 +53,11 @@ You can also run them locally using the following commands:
 
 ```bash
 go test -race -v ./...
-# If you have [golangci-lint](https://github.com/golangci/golangci-lint) installed you can run:
+```
+
+If you have [golangci-lint](https://github.com/golangci/golangci-lint) installed you can run:
+
+```bash
 golangci-lint run
 ```
 
