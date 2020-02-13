@@ -69,6 +69,8 @@ func (m *InMemoryMetrics) Get() []Result {
 	return res
 }
 
+// Topic take a Metrics interface and return the FizzBuzz request
+// with the most hits.
 func TopHit(m Metrics) (Result, error) {
 	hits := m.Get()
 	if len(hits) == 0 {
