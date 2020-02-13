@@ -83,5 +83,15 @@ func (h *handlers) handleMetrics(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.respond(w, r, "", h.Metrics.Get(), http.StatusOK)
+	top, err := metrics.TopHit(h.Metrics)
+	if err != nil {
+		h.respond(w, r, "no metrics found, start making requests and come back", nil, http.StatusOK)
+		return
+	}
+
+	res := struct {
+		TopHit metrics.Result `json:"topHit"`
+	}{TopHit: top}
+
+	h.respond(w, r, "", res, http.StatusOK)
 }
