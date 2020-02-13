@@ -1,7 +1,6 @@
 package http
 
 import (
-	"encoding/json"
 	"log"
 	"net/http"
 	"strconv"
@@ -34,7 +33,7 @@ func (h *handlers) handleFizzBuzz(w http.ResponseWriter, r *http.Request) {
 
 	n1, err := strconv.Atoi(int1)
 	if err != nil {
-		http.Error(w, "error parsing int1", http.StatusBadRequest)
+		h.respond(w, r, "error parsing int1", nil, http.StatusBadRequest)
 		return
 	}
 
@@ -42,7 +41,7 @@ func (h *handlers) handleFizzBuzz(w http.ResponseWriter, r *http.Request) {
 
 	n2, err := strconv.Atoi(int2)
 	if err != nil {
-		http.Error(w, "error parsing int2", http.StatusBadRequest)
+		h.respond(w, r, "error parsing int2", nil, http.StatusBadRequest)
 		return
 	}
 
@@ -50,19 +49,19 @@ func (h *handlers) handleFizzBuzz(w http.ResponseWriter, r *http.Request) {
 
 	l, err := strconv.Atoi(limit)
 	if err != nil {
-		http.Error(w, "error parsing limit", http.StatusBadRequest)
+		h.respond(w, r, "error parsing limit", nil, http.StatusBadRequest)
 		return
 	}
 
 	str1 := r.URL.Query().Get("str1")
 	if str1 == "" {
-		http.Error(w, "missing required parameter str1", http.StatusBadRequest)
+		h.respond(w, r, "missing required parameter str1", nil, http.StatusBadRequest)
 		return
 	}
 
 	str2 := r.URL.Query().Get("str2")
 	if str2 == "" {
-		http.Error(w, "missing required parameter str2", http.StatusBadRequest)
+		h.respond(w, r, "missing required parameter str2", nil, http.StatusBadRequest)
 		return
 	}
 
@@ -75,10 +74,7 @@ func (h *handlers) handleFizzBuzz(w http.ResponseWriter, r *http.Request) {
 	})
 
 	res := fizzbuzz.FizzBuzz(n1, n2, l, str1, str2)
-
-	w.Header().Add("content-type", "application/json; charset=utf-8")
-	// https://stackoverflow.com/questions/33903552/what-input-will-cause-golangs-json-marshal-to-return-an-error
-	_ = json.NewEncoder(w).Encode(res)
+	h.respond(w, r, "", res, http.StatusOK)
 }
 
 func (h *handlers) handleMetrics(w http.ResponseWriter, r *http.Request) {
@@ -87,9 +83,5 @@ func (h *handlers) handleMetrics(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res := h.FizzBuzzMetrics.Get()
-
-	w.Header().Add("content-type", "application/json; charset=utf-8")
-	// https://stackoverflow.com/questions/33903552/what-input-will-cause-golangs-json-marshal-to-return-an-error
-	_ = json.NewEncoder(w).Encode(res)
+	h.respond(w, r, "", h.FizzBuzzMetrics.Get(), http.StatusOK)
 }

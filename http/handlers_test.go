@@ -1,12 +1,17 @@
 package http
 
 import (
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"os"
 	"testing"
+
+	"github.com/google/go-cmp/cmp"
 
 	"github.com/sharkyze/lbc/metrics"
 )
@@ -40,7 +45,9 @@ func mustDoTestRequest(t *testing.T, u string, req httpTestRequest) *http.Respon
 
 func Test_handlers_handleFizzBuzz(t *testing.T) {
 	type want struct {
-		status int
+		status        int
+		CheckResponse bool
+		response      response
 	}
 
 	tests := map[string]struct {
@@ -182,13 +189,17 @@ func Test_handlers_handleFizzBuzz(t *testing.T) {
 				params: map[string]string{
 					"int1":  "3",
 					"int2":  "5",
-					"limit": "100",
+					"limit": "10",
 					"str1":  "Fizz",
 					"str2":  "Buzz",
 				},
 			},
 			want: want{
-				status: http.StatusOK,
+				status:        http.StatusOK,
+				CheckResponse: true,
+				response: response{
+					Data: []interface{}{"1", "2", "Fizz", "4", "Buzz", "Fizz", "7", "8", "Fizz", "Buzz"},
+				},
 			},
 		},
 	}
@@ -207,6 +218,26 @@ func Test_handlers_handleFizzBuzz(t *testing.T) {
 
 			if tt.want.status != res.StatusCode {
 				t.Errorf("status code error")
+			}
+
+			b, err := ioutil.ReadAll(res.Body)
+			if err != nil {
+				t.Errorf("error reading response body: %v", err)
+			}
+
+			if tt.want.CheckResponse {
+				var r response
+
+				err = json.Unmarshal(b, &r)
+				if err != nil {
+					t.Errorf("error unmarshalling response json: %v", err)
+				}
+
+				if !cmp.Equal(r, tt.want.response) {
+					t.Errorf(cmp.Diff(r, tt.want.response))
+				}
+
+				fmt.Println(r)
 			}
 		})
 	}
