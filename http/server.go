@@ -14,6 +14,8 @@ const (
 	httpServerIdleTimeout  = 120 * time.Second
 )
 
+// New returns a new http.Server, the caller of this function is responsible for
+// starting and gracefully shutting down the server.
 func New(port string, logger *log.Logger, metrics metrics.Metrics) http.Server {
 	hs := newHandlers(logger, metrics)
 
