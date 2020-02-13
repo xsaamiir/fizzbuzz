@@ -1,6 +1,7 @@
 package metrics
 
 import (
+	"errors"
 	"sync"
 )
 
@@ -13,8 +14,11 @@ type (
 
 	// Result is the input needed to do a "FizzBuzz"
 	Request struct {
-		Int1, Int2, Limit int
-		Str1, Str2        string
+		Int1  int    `json:"int1"`
+		Int2  int    `json:"int2"`
+		Limit int    `json:"limit"`
+		Str1  string `json:"str1"`
+		Str2  string `json:"str2"`
 	}
 
 	// Metrics is the interface to record and retrieve service usage
@@ -63,4 +67,20 @@ func (m *InMemoryMetrics) Get() []Result {
 	}
 
 	return res
+}
+
+func TopHit(m Metrics) (Result, error) {
+	hits := m.Get()
+	if len(hits) == 0 {
+		return Result{}, errors.New("no recorded metrics")
+	}
+
+	var top Result
+	for _, res := range m.Get() {
+		if res.Hits > top.Hits {
+			top = res
+		}
+	}
+
+	return top, nil
 }
